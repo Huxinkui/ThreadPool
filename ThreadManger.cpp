@@ -3,12 +3,19 @@
 #include "TaskNode.h"
 #include "ThreadNode.h"
 
+void  Run(void * i)
+{
+	int num = *(int *)i;
+	cout << "num: " << num << endl;
+	//return 0;
+}
 
 
 ThreadManger::ThreadManger():counter(0),threadNode(NULL),taskNodeHead(NULL),taskNodeBack(NULL),task_num(0){}
 ThreadManger::~ThreadManger(){}
 
-	//任务队列创建
+//任务队列创建
+
 int ThreadManger::taskList_create(int num)
 {
 	mtx.lock();
@@ -18,7 +25,7 @@ int ThreadManger::taskList_create(int num)
 	{
 		/* code */
 		TaskNode * tmpNode = new TaskNode(i);
-
+		tmpNode->setfunc(Run);
 		int ret = taskList_add(tmpNode);
 	}
 	mtx.unlock();
@@ -88,7 +95,7 @@ TaskNode* ThreadManger::taskList_remove(){
 
 
 
-	//执行队列创建
+	//线程队列创建
 int ThreadManger::tHredList_Create(int num){ 
 
 	max_thread_num = num;
@@ -97,23 +104,9 @@ int ThreadManger::tHredList_Create(int num){
 	while(counter < max_thread_num)
 	{
 
-
 		ThreadNode * tmpThreadNode = new ThreadNode();
-		TaskNode * tmpTaskNode = taskList_remove();
-		if(tmpTaskNode == NULL )
-		{
-			cout<< "TaskNode is NULL" << endl;
-			//return 0;
-		}   
-		tmpThreadNode->setTaskNode(tmpTaskNode);
-		tmpThreadNode->initThread();
-		tmpThreadNode->test_id = counter;
-		tmpThreadNode->sleep_time = std::chrono::seconds(max_thread_num - counter);
-		cout << "tmpThreadNode::test_id:" << tmpThreadNode->test_id <<"  tmpThreadNode::sleep_time: "  <<  max_thread_num - counter << endl;
-		//tmpTNode->setThreadId(counter);
 		threadList_add(tmpThreadNode);
 		counter++;
-
 		
 	}
 
@@ -124,7 +117,25 @@ int ThreadManger::tHredList_Create(int num){
 	return 0;
 }
 
+int ThreadManger::tHreadList_Distory(){ 
 
+while(threadNode != NULL)
+	{
+		
+		if(threadNode->getnext() != NULL)
+		{
+			ThreadNode * tmpNode = threadNode->getnext();
+			delete threadNode;
+			threadNode = tmpNode;
+		}
+		else
+		{
+			delete threadNode;
+			threadNode = NULL;
+		}
+	}
+	return 0;
+}
 
 //双向链表头部加节点
 int ThreadManger::threadList_add(ThreadNode * threadNode){
@@ -151,25 +162,11 @@ int ThreadManger::threadList_add(ThreadNode * threadNode){
 
 
 
-int ThreadManger::tHreadList_Distory(){ 
 
-while(threadNode != NULL)
-	{
-		threadNode -> Print();
-		if(threadNode->getnext() != NULL)
-		{
-			ThreadNode * tmpNode = threadNode->getnext();
-			delete threadNode;
-			threadNode = tmpNode;
-		}
-		else
-		{
-			delete threadNode;
-			threadNode = NULL;
-		}
-	}
-	return 0;
-}
+
+
+
+
 
 
 

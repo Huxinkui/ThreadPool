@@ -33,6 +33,7 @@ public:
 
 
 
+
 private:
 	int task_num;// task工单量
 	int max_thread_num; // 最大线程数
@@ -40,7 +41,6 @@ private:
 	int idle; //线程池中空闲线程数
 	TaskNode * taskNodeHead;
 	TaskNode * taskNodeBack;
-
 	ThreadNode * threadNode;
 
 	std::mutex mtx;//互斥量

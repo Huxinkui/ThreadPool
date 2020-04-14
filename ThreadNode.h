@@ -10,33 +10,23 @@ class ThreadNode
 {
 public:
 	ThreadNode();
-	ThreadNode(const ThreadNode &node);
 	~ThreadNode();
 	int setprev(ThreadNode *);
 	ThreadNode* getprev();
 	int setnext(ThreadNode *);
 	ThreadNode* getnext();
-	int setThreadId(std::thread::id );
-	std::thread::id  getThreadId();
-	int initThread();
+	int setThread(std::thread &Thread)	;
+	std::thread * getThread();
 
-	int setTaskNode(TaskNode *);
-	
+	int setThreadStatus( bool )	;
+	bool getThreadStatus();
 
-	int runThread();
-
-	int Print();
-
-	int test_id ;
-	std::chrono::seconds sleep_time;
 
 private:
-
-	std::thread::id  thread_id;
+	bool ThreadStatus;
+	std::thread  Thread;
 	ThreadNode * prev;
 	ThreadNode * next;
-	TaskNode * taskNode;
-	std::thread  th;
 
 
 
