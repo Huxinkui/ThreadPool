@@ -32,6 +32,7 @@ public:
 	void Print();
 
 	
+	int taskId;
 
 private:
 
@@ -39,7 +40,7 @@ FUN fun;
 TaskNode * perv;
 TaskNode * next;
 
-int taskId;
+
 	
 };
 

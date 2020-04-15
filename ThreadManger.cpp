@@ -6,24 +6,41 @@
 void  Run(void * arg)
 {
 	int num = *(int *)arg;
-	cout << "num: " << num << endl;
-
+	cout << "    num: " << num << endl;
 
 }
 
 void Thread_cb(void * arg)
 {
-	ThreadManger * tmpNode = (ThreadManger *) arg;
-	if(tmpNode != NULL)
+	ThreadManger * tmpMangerNode = (ThreadManger *) arg;
+	if(tmpMangerNode != NULL)
 	{
 		while(1){
 
 		std::this_thread::sleep_for(std::chrono::seconds(1));
 		std::thread::id thread_id = std::this_thread::get_id();
 		
-		cout << "This Thread Id :" << thread_id << " ManagerThread_id " <<tmpNode->thread_id  << " task node back: " << tmpNode->taskNodeBack << endl;
-		TaskNode * tmpTaskNode = tmpNode->taskList_remove();
-		delete tmpTaskNode;
+		std::unique_lock<std::mutex> lck{tmpMangerNode->mtx};
+
+		cout << "This Thread Id :" << thread_id ;		
+		TaskNode * tmpTaskNode =NULL;
+		while(( tmpTaskNode = tmpMangerNode->taskList_remove()) == NULL)
+		{
+			cout << "tmpTaskNode is NULL" << tmpTaskNode << endl;
+			std::this_thread::sleep_for(std::chrono::seconds(1));
+			//(tmpMangerNode->cv).wait(lck);
+		}
+
+		if (tmpTaskNode != NULL)
+		{
+			if(tmpTaskNode->taskId == 0)
+			{
+				std::this_thread::sleep_for(std::chrono::seconds(2));
+			}
+			(tmpTaskNode->getfunc())((void*)&(tmpTaskNode->taskId));
+			delete tmpTaskNode;
+		}
+		
 	}
 	}
 }
@@ -44,6 +61,7 @@ int ThreadManger::taskList_create(int num)
 		/* code */
 		TaskNode * tmpNode = new TaskNode(i);
 		tmpNode->setfunc(Run);
+		tmpNode->taskId = i;
 		int ret = taskList_add(tmpNode);
 	}
 	//mtx.unlock();
@@ -90,6 +108,7 @@ int ThreadManger::taskList_add(TaskNode * taskNode){
 		this->taskNodeHead = taskNode;		
 
 	}
+	//cv.notify_all();
 	mtx.unlock();
 	return 0;
 }

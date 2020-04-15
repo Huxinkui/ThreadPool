@@ -35,6 +35,8 @@ public:
 	std::thread::id thread_id;
 	ThreadNode * threadNode;
 	TaskNode * taskNodeBack;
+	std::mutex mtx;//互斥量
+	std::condition_variable cv;//信号量
 
 private:
 	int task_num;// task工单量
@@ -43,8 +45,7 @@ private:
 	int idle; //线程池中空闲线程数
 	TaskNode * taskNodeHead;
 
-	std::mutex mtx;//互斥量
-	std::condition_variable cv;//信号量
+	
 	
 };
 
