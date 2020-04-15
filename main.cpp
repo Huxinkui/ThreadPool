@@ -9,7 +9,13 @@ int main(void)
 	
 
 	ThreadManger  tm;
+	tm.taskList_create(5);
 	tm.tHredList_Create(2);
+
+	for(auto tmpiter = tm.threadNode; tmpiter != NULL;tmpiter = tm.threadNode->getnext())
+	{
+		tmpiter->Thread.join();
+	}
 
 	// tm.taskList_create(5);
 

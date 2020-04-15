@@ -1,5 +1,5 @@
 #include"ThreadNode.h"
-#include "TaskNode.h"
+
 
 
 ThreadNode::ThreadNode():ThreadStatus(false),prev(NULL),next(NULL){
@@ -43,18 +43,10 @@ ThreadNode* ThreadNode::getnext(){
 }
 
 
-int ThreadNode::setThread(std::thread &Thread)
-{
-	Thread = std::thread(std::move(Thread));
-	return 1;
-}
 
 
-std::thread * ThreadNode::getThread()
-{
-	
-	return &Thread;
-}
+
+
 
 
 int ThreadNode::setThreadStatus(bool ThreadStatus)
@@ -69,4 +61,13 @@ bool ThreadNode::getThreadStatus()
 	return ThreadStatus;
 }
 
-
+// std::thread * ThreadNode::getThread()
+// {
+	
+// 	return &Thread;
+// }
+// int ThreadNode::setThread(std::thread &Thread)
+// {
+// 	Thread = std::thread(std::move(Thread));
+// 	return 1;
+// }

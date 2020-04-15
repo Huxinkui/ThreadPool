@@ -3,11 +3,29 @@
 #include "TaskNode.h"
 #include "ThreadNode.h"
 
-void  Run(void * i)
+void  Run(void * arg)
 {
-	int num = *(int *)i;
+	int num = *(int *)arg;
 	cout << "num: " << num << endl;
-	//return 0;
+
+
+}
+
+void Thread_cb(void * arg)
+{
+	ThreadManger * tmpNode = (ThreadManger *) arg;
+	if(tmpNode != NULL)
+	{
+		while(1){
+
+		std::this_thread::sleep_for(std::chrono::seconds(1));
+		std::thread::id thread_id = std::this_thread::get_id();
+		
+		cout << "This Thread Id :" << thread_id << " ManagerThread_id " <<tmpNode->thread_id  << " task node back: " << tmpNode->taskNodeBack << endl;
+		TaskNode * tmpTaskNode = tmpNode->taskList_remove();
+		delete tmpTaskNode;
+	}
+	}
 }
 
 
@@ -18,7 +36,7 @@ ThreadManger::~ThreadManger(){}
 
 int ThreadManger::taskList_create(int num)
 {
-	mtx.lock();
+	//mtx.lock();
 	task_num = num;
 
 	for (int i = 0; i < num; ++i)
@@ -28,13 +46,13 @@ int ThreadManger::taskList_create(int num)
 		tmpNode->setfunc(Run);
 		int ret = taskList_add(tmpNode);
 	}
-	mtx.unlock();
+	//mtx.unlock();
 	return 0;
 }
 
 //销毁双向链表
 int ThreadManger::taskList_distory(){
-
+	mtx.lock();
 	while(taskNodeBack != NULL)
 	{
 		if(taskNodeBack->getperv() != NULL)
@@ -51,13 +69,14 @@ int ThreadManger::taskList_distory(){
 			taskNodeBack = NULL;
 		}
 	}
+	mtx.unlock();
 	return 0;
 }
 //双向链表头部加节点
 int ThreadManger::taskList_add(TaskNode * taskNode){
 	//std::cout << "This is Test1" <<std::endl;
 
-	taskNode->Print();
+	//taskNode->Print();
 	mtx.lock();
 	if(this->taskNodeHead == NULL && this->taskNodeBack == NULL)
 	{
@@ -84,8 +103,9 @@ TaskNode* ThreadManger::taskList_remove(){
 
 		taskNodeBack = tmpNode->getperv();
 		task_num --;
-		return tmpNode;
 		mtx.unlock();
+		return tmpNode;
+		
 	}
 	mtx.unlock();
 	return NULL;
@@ -97,19 +117,22 @@ TaskNode* ThreadManger::taskList_remove(){
 
 	//线程队列创建
 int ThreadManger::tHredList_Create(int num){ 
-
-	max_thread_num = num;
 	//mtx.lock();
 	
+	max_thread_num = num;	
 	while(counter < max_thread_num)
 	{
 
 		ThreadNode * tmpThreadNode = new ThreadNode();
+
+		tmpThreadNode->Thread = std::thread(Thread_cb,this);
+		tmpThreadNode->thread_id = (tmpThreadNode->Thread).get_id();
+		thread_id = (tmpThreadNode->Thread).get_id();
+		//(tmpThreadNode->Thread).join();
 		threadList_add(tmpThreadNode);
 		counter++;
 		
 	}
-
 	//mtx.unlock();
 
 
@@ -118,8 +141,8 @@ int ThreadManger::tHredList_Create(int num){
 }
 
 int ThreadManger::tHreadList_Distory(){ 
-
-while(threadNode != NULL)
+	mtx.lock();
+	while(threadNode != NULL)
 	{
 		
 		if(threadNode->getnext() != NULL)
@@ -134,6 +157,7 @@ while(threadNode != NULL)
 			threadNode = NULL;
 		}
 	}
+	mtx.unlock();
 	return 0;
 }
 
@@ -159,6 +183,10 @@ int ThreadManger::threadList_add(ThreadNode * threadNode){
 	return 0;
 }
 
+
+TaskNode * ThreadManger::getHeadNode(){
+	return taskNodeHead;
+}
 
 
 

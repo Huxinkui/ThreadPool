@@ -15,16 +15,17 @@ public:
 	ThreadNode* getprev();
 	int setnext(ThreadNode *);
 	ThreadNode* getnext();
-	int setThread(std::thread &Thread)	;
-	std::thread * getThread();
+	// int setThread(std::thread &Thread)	;
+	// std::thread * getThread();
 
 	int setThreadStatus( bool )	;
 	bool getThreadStatus();
-
-
+	
+	std::thread::id thread_id;
+	std::thread  Thread;
 private:
 	bool ThreadStatus;
-	std::thread  Thread;
+
 	ThreadNode * prev;
 	ThreadNode * next;
 

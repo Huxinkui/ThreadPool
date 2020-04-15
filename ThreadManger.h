@@ -31,8 +31,10 @@ public:
 	int tHreadList_Distory();
 	int threadList_add(ThreadNode * );
 
-
-
+	TaskNode * getHeadNode();
+	std::thread::id thread_id;
+	ThreadNode * threadNode;
+	TaskNode * taskNodeBack;
 
 private:
 	int task_num;// task工单量
@@ -40,8 +42,6 @@ private:
 	int counter ;//线程池中已有线程数
 	int idle; //线程池中空闲线程数
 	TaskNode * taskNodeHead;
-	TaskNode * taskNodeBack;
-	ThreadNode * threadNode;
 
 	std::mutex mtx;//互斥量
 	std::condition_variable cv;//信号量
