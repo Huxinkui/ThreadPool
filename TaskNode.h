@@ -4,7 +4,7 @@
 #include<iostream>
 using std::cout;
 using std::endl;
-typedef void (*FUN)(void *);
+typedef void (*FUN)(void *,void *);
 //任务队列
 
 class TaskNode
