@@ -7,10 +7,9 @@ void  Run(void * arg, void * arg1)
 	int num = *(int *)arg;
 	ThreadManger * tmpMangerNode = (ThreadManger *) arg1;
 	std::thread::id thread_id = std::this_thread::get_id();	
-	std::unique_lock<std::mutex> lck(tmpMangerNode->mtx);
-
-	cout << "This Thread Id :" << thread_id<< endl;		
-	cout << " This is RUN    num: " << num << endl;
+	std::unique_lock<std::mutex> lck(tmpMangerNode->getMtx());
+	cout << "This Thread Id :" << thread_id ;		
+	cout << "  This is RUN    num: " << num << endl;
 }
 
 void Thread_cb(void * arg)
@@ -20,51 +19,30 @@ void Thread_cb(void * arg)
 	if(tmpMangerNode != NULL)
 	{
 		while(1){
-		//std::this_thread::sleep_for(std::chrono::seconds(1));
-		std::thread::id thread_id = std::this_thread::get_id();
 		
-		//std::unique_lock<std::mutex> lck{tmpMangerNode->mtx};
-		//tmpMangerNode->
-		// {
-		// 		std::unique_lock<std::mutex> lck(tmpMangerNode->mtx);
-		// 		cout << "This Thread Id :" << thread_id<< endl;	
-		// }
-		//tmpMangerNode->	
-		 //tmpMangerNode->
-		{
-		//std::unique_lock<std::mutex> lck(tmpMangerNode->mtx);
-		while(tmpMangerNode->task_num == 0) 
-			{	
-				std::unique_lock<std::mutex> lck(tmpMangerNode->mtx);
-				//std::thread::id thread_id = std::this_thread::get_id();	
-				//cout << " This thread is wait() : " << thread_id<< endl;
-				(tmpMangerNode->cv).wait(lck);
-				lck.unlock();
-			}
-		}
-
-		TaskNode * tmpTaskNode = tmpMangerNode->taskList_remove();
-
-		if (tmpTaskNode != NULL)
-		{
-			//std::this_thread::sleep_for(std::chrono::seconds(1));
+			std::unique_lock<std::mutex> lck(tmpMangerNode->getMtx(), std::defer_lock);
+			lck.lock();
+			while(tmpMangerNode->getTaskNum() == 0) 
+					(tmpMangerNode->getCv()).wait(lck);
+			lck.unlock();
 			
-			//cout << "This func iter : " << tmpTaskNode->getfunc() << endl; ;
-			//tmpMangerNode->
-			(tmpTaskNode->getfunc())((void*)&(tmpTaskNode->taskId), arg);
-			//tmpMangerNode->
-			delete tmpTaskNode;
+			TaskNode * tmpTaskNode = tmpMangerNode->taskList_remove();
+			
+			if (tmpTaskNode != NULL)
+			{
+				
+				(tmpTaskNode->getfunc())((void*)&(tmpTaskNode->taskId), arg);
+				
+				delete tmpTaskNode;
+			}
+			
 		}
-		//tmpMangerNode->
-		
-	}
 	}
 }
 
 
 ThreadManger::ThreadManger():counter(0),threadNode(NULL),taskNodeHead(NULL),taskNodeBack(NULL),task_num(0){
-	// lck = std::unique_lock<std::mutex>(mtx);
-	// 
+
 }
 ThreadManger::~ThreadManger(){}
 
@@ -73,8 +51,6 @@ ThreadManger::~ThreadManger(){}
 int ThreadManger::taskList_create(int num)
 {
 	
-	// 
-	//task_num = num;
 	for (int i = 0; i < num; ++i)
 	{
 		/* code */
@@ -82,38 +58,16 @@ int ThreadManger::taskList_create(int num)
 		tmpNode->setfunc(Run);
 		tmpNode->taskId = i;
 		int ret = taskList_add(tmpNode);
-		//cout << " This is create task" << endl;
 	}
 	// 
-	return 0;
-}
-
-//销毁双向链表
-int ThreadManger::taskList_distory(){
-
-	while(taskNodeBack != NULL)
-	{
-		if(taskNodeBack->getperv() != NULL)
-		{
-			taskNodeBack->Print();
-			TaskNode * tmpNode = taskNodeBack->getperv();
-			delete taskNodeBack;
-			taskNodeBack = tmpNode;
-		}
-		else
-		{
-			taskNodeBack->Print();
-			delete taskNodeBack;
-			taskNodeBack = NULL;
-		}
-	}
-
 	return 0;
 }
 //双向链表头部加节点
 int ThreadManger::taskList_add(TaskNode * taskNode){
 
-	std::unique_lock<std::mutex> lck(mtx);
+	//std::this_thread::sleep_for(std::chrono::seconds(1));
+	std::unique_lock<std::mutex> lck(mtx,std::defer_lock);
+	lck.lock();
 	if(this->taskNodeHead == NULL && this->taskNodeBack == NULL)
 	{
 		this->taskNodeHead = taskNode;
@@ -127,48 +81,38 @@ int ThreadManger::taskList_add(TaskNode * taskNode){
 
 	}
 	task_num++;
-	cv.notify_all();
-	
+	cv.notify_one();
+	lck.unlock();
 	return 0;
 }
 
-int ThreadManger::taskList_add1(TaskNode * taskNode){
 
-	std::unique_lock<std::mutex> lck(mtx);
-	if(this->taskNodeHead == NULL && this->taskNodeBack == NULL)
-	{
-		this->taskNodeHead = taskNode;
-		this->taskNodeBack = taskNode;
-	}
-	else{
-
-		this->taskNodeHead->setperv(taskNode);
-		taskNode->setnext(this->taskNodeHead);
-		this->taskNodeHead = taskNode;		
-
-	}
-	task_num++;
-	cv.notify_all();
-	
-	return 0;
-}
 //链表尾部取节点
 TaskNode* ThreadManger::taskList_remove(){
 
-	std::unique_lock<std::mutex> lck(mtx);
+	std::unique_lock<std::mutex> lck(mtx,std::defer_lock);
+	lck.lock();
 	 
 	TaskNode *  tmpNode = taskNodeBack;
 	if (tmpNode != NULL){
-		taskNodeBack->getperv()->setnext(NULL);
+		if(taskNodeBack->getperv() == NULL)
+		{
+			taskNodeHead = NULL;
+			taskNodeBack = NULL;
+		}
+		else
+		{
+			taskNodeBack->getperv()->setnext(NULL);
+			taskNodeBack = tmpNode->getperv();
+		}
 
-		taskNodeBack = tmpNode->getperv();
+		
 		task_num --;
-		 
+		lck.unlock();
 		return tmpNode;
 		
 	}
-	//task_num --;
-	 
+	 lck.unlock();
 	return NULL;
 }
 
@@ -187,8 +131,6 @@ int ThreadManger::tHredList_Create(int num){
 
 		tmpThreadNode->Thread = std::thread(Thread_cb,this);
 		tmpThreadNode->thread_id = (tmpThreadNode->Thread).get_id();
-		thread_id = (tmpThreadNode->Thread).get_id();
-		//(tmpThreadNode->Thread).join();
 		threadList_add(tmpThreadNode);
 		counter++;
 		
@@ -198,26 +140,6 @@ int ThreadManger::tHredList_Create(int num){
 
 	return 0;
 }
-
-int ThreadManger::tHreadList_Distory(){ 
-
-	
-	while(threadNode != NULL)
-	{
-		
-		if(threadNode->getnext() != NULL)
-		{
-			ThreadNode * tmpNode = threadNode->getnext();
-			delete threadNode;
-			threadNode = tmpNode;
-		}
-		else
-		{
-			delete threadNode;
-			threadNode = NULL;
-		}
-	}
-	return 0;}
 
 //双向链表头部加节点
 int ThreadManger::threadList_add(ThreadNode * threadNode){
@@ -237,12 +159,19 @@ int ThreadManger::threadList_add(ThreadNode * threadNode){
 	return 0;
 }
 
-
-TaskNode * ThreadManger::getHeadNode(){
-	return taskNodeHead;
+ThreadNode * ThreadManger::getThreadNode(){
+	return threadNode;
+}
+std::mutex& ThreadManger::getMtx(){ //互斥量在作为私有成员时，get获取需要传引用
+	return mtx;
+}
+std::condition_variable& ThreadManger::getCv(){//条件变量在作为私有成员时，get获取需要传引用
+	return cv;
 }
 
-
+int ThreadManger::getTaskNum(){
+	return task_num;
+}
 
 
 

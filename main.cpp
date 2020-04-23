@@ -1,13 +1,18 @@
 #include <iostream>
 #include "ThreadManger.h"
 
+
+
 using namespace std;
 
 void  run_func(void * arg, void * arg1)
 {
 	int num = *(int *)arg;
 	ThreadManger * tmpMangerNode = (ThreadManger *) arg1;
-	std::unique_lock<std::mutex> lck(tmpMangerNode->mtx);
+	std::unique_lock<std::mutex> lck(tmpMangerNode->getMtx());
+
+	std::thread::id thread_id = std::this_thread::get_id();	
+	cout << "This Thread Id :" << thread_id ;
 	cout << " This is run_func    num: " << num << endl;
 
 }
@@ -17,21 +22,21 @@ int main(void)
 
 	ThreadManger  tm;
 	tm.tHredList_Create(2);
-	tm.taskList_create(100);
+	tm.taskList_create(100);//使用Run作为任务队列中的任务创建任务队列
 
+	std::this_thread::sleep_for(std::chrono::seconds(3));
 	for(int i = 10; i < 20; i++)
 	{
 		
-		std::this_thread::sleep_for(std::chrono::seconds(3));
-		cout << " This is create task" << endl;
+		//cout << " This is create task" << endl;
 		TaskNode * tmpNode = new TaskNode(i);
-		tmpNode->setfunc(run_func);
+		tmpNode->setfunc(run_func); //使用run_func作为任务队列中的任务创建任务队列
 		tmpNode->taskId = i;
-		int ret = tm.taskList_add1(tmpNode);
+		int ret = tm.taskList_add(tmpNode);
 	}
 
 	
-	for(auto tmpiter = tm.threadNode; tmpiter != NULL;tmpiter = tm.threadNode->getnext())
+	for(auto tmpiter = tm.getThreadNode(); tmpiter != NULL;tmpiter = (tm.getThreadNode())->getnext())
 	{
 		tmpiter->Thread.join();
 	}

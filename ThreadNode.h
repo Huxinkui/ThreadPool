@@ -25,7 +25,6 @@ public:
 	std::thread  Thread;
 private:
 	bool ThreadStatus;
-
 	ThreadNode * prev;
 	ThreadNode * next;
 
