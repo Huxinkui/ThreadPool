@@ -66,8 +66,22 @@ int ThreadManger::taskList_create(int num)
 int ThreadManger::taskList_add(TaskNode * taskNode){
 
 	//std::this_thread::sleep_for(std::chrono::seconds(1));
+	//
+	//
+	//
+	std::unique_lock<std::mutex> lckadd(mtxadd, std::defer_lock);
+	lckadd.lock();
+	while( task_max == task_num) 
+	{
+		cout << "THE TaskList is FULL" << endl;
+		cvadd.wait(lckadd);
+	}
+	lckadd.unlock();
+		
 	std::unique_lock<std::mutex> lck(mtx,std::defer_lock);
 	lck.lock();
+		
+	// lckadd.unlock();
 	if(this->taskNodeHead == NULL && this->taskNodeBack == NULL)
 	{
 		this->taskNodeHead = taskNode;
@@ -105,9 +119,8 @@ TaskNode* ThreadManger::taskList_remove(){
 			taskNodeBack->getperv()->setnext(NULL);
 			taskNodeBack = tmpNode->getperv();
 		}
-
-		
 		task_num --;
+		cvadd.notify_all();
 		lck.unlock();
 		return tmpNode;
 		
@@ -171,6 +184,16 @@ std::condition_variable& ThreadManger::getCv(){//条件变量在作为私有成�
 
 int ThreadManger::getTaskNum(){
 	return task_num;
+}
+
+int ThreadManger::setTaskMax(){
+	cout << "请输入最大任务队列 ： " ;
+	cin >> task_max;
+	return 0;
+}
+
+int ThreadManger::getTaskMax(){
+	return task_max;
 }
 
 

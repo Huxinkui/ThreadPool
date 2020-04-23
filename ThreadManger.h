@@ -36,6 +36,9 @@ public:
 	std::mutex& getMtx();
 	std::condition_variable& getCv();
 	int getTaskNum();
+	int setTaskMax();
+	int getTaskMax();
+
 
 private:
 	
@@ -45,9 +48,14 @@ private:
 	TaskNode * taskNodeHead;//头结点
 	TaskNode * taskNodeBack;//尾结点
 	ThreadNode * threadNode;//线程池
-	std::mutex mtx;//互斥量
+	std::mutex mtxadd;//最大任务互斥量
+	std::mutex mtx;//取任务互斥量
+	std::condition_variable cvadd; //最大任务信号量
 	std::condition_variable cv;//信号量
 	int task_num;// task工单量
+	int task_max;// 任务队列最大容量
+
+
 
 	
 	

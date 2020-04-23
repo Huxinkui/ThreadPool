@@ -20,7 +20,9 @@ void  run_func(void * arg, void * arg1)
 int main(void)
 {
 
+
 	ThreadManger  tm;
+	tm.setTaskMax();
 	tm.tHredList_Create(2);
 	tm.taskList_create(100);//使用Run作为任务队列中的任务创建任务队列
 
