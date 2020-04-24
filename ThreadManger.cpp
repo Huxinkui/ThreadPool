@@ -15,6 +15,7 @@ void  Run(void * arg, void * arg1)//任务节点函数1
 void Thread_cb(void * arg) //线程绑定入口函数
 {
 
+
 	ThreadManger * tmpMangerNode = (ThreadManger *) arg;
 	if(tmpMangerNode != NULL)
 	{
@@ -22,6 +23,8 @@ void Thread_cb(void * arg) //线程绑定入口函数
 		
 			std::unique_lock<std::mutex> lck(tmpMangerNode->getMtx(), std::defer_lock);
 			lck.lock();
+			std::thread::id thread_id = std::this_thread::get_id();	
+			cout << "This Thread Id :" << thread_id << endl ;
 			while(tmpMangerNode->getTaskNum() == 0) 
 					(tmpMangerNode->getCv()).wait(lck);
 			lck.unlock();
@@ -32,7 +35,6 @@ void Thread_cb(void * arg) //线程绑定入口函数
 			{
 				std::this_thread::sleep_for(std::chrono::seconds(1));
 				(tmpTaskNode->getfunc())((void*)&(tmpTaskNode->taskId), arg);
-				
 				delete tmpTaskNode;
 			}
 			
@@ -41,7 +43,7 @@ void Thread_cb(void * arg) //线程绑定入口函数
 }
 
 
-ThreadManger::ThreadManger():counter(0),threadNode(NULL),taskNodeHead(NULL),taskNodeBack(NULL),task_num(0){
+ThreadManger::ThreadManger():max_thread_num(0),counter(0),task_num(0),task_max(0),taskNodeHead(NULL),taskNodeBack(NULL),threadNode(NULL){
 
 }
 ThreadManger::~ThreadManger(){}
@@ -67,18 +69,26 @@ int ThreadManger::taskList_create(int num)
 int ThreadManger::taskList_add(TaskNode * taskNode){
 
 
+	// std::unique_lock<std::mutex> lckadd(mtxadd, std::defer_lock);
+	// lckadd.lock();
+	// while( task_max == task_num) 
+	// {
+	// 	cout << "THE TaskList is FULL" << endl;
+	// 	cv.wait(lckadd);
+	// }
+	// lckadd.unlock();
+		
+	std::unique_lock<std::mutex> lck(mtx,std::defer_lock);
+	lck.lock();
+		
 	std::unique_lock<std::mutex> lckadd(mtxadd, std::defer_lock);
-	lckadd.lock();
+
 	while( task_max == task_num) 
 	{
 		cout << "THE TaskList is FULL" << endl;
 		cv.wait(lckadd);
 	}
-	lckadd.unlock();
-		
-	std::unique_lock<std::mutex> lck(mtx,std::defer_lock);
-	lck.lock();
-		
+
 	// lckadd.unlock();
 	if(this->taskNodeHead == NULL && this->taskNodeBack == NULL)
 	{
@@ -93,7 +103,7 @@ int ThreadManger::taskList_add(TaskNode * taskNode){
 
 	}
 	task_num++;
-	cv.notify_one();
+	cv.notify_all();
 	lck.unlock();
 	return 0;
 }
@@ -121,9 +131,12 @@ TaskNode* ThreadManger::taskList_remove(){
 		cv.notify_all();
 		lck.unlock();
 		return tmpNode;
-		
+	}
+	else {
+		cout << " Task List is empty !" << endl;
 	}
 	 lck.unlock();
+	
 	return NULL;
 }
 

@@ -46,15 +46,14 @@ private:
 	
 	int max_thread_num; // 最大线程数
 	int counter ;//线程池中已有线程数
-	int idle; //线程池中空闲线程数
+	int task_num;// task工单量
+	int task_max;// 任务队列最大容量
 	TaskNode * taskNodeHead;//头结点
 	TaskNode * taskNodeBack;//尾结点
 	ThreadNode * threadNode;//线程池
 	std::mutex mtxadd;//最大任务互斥量
 	std::mutex mtx;//取任务互斥量
 	std::condition_variable cv;//信号量
-	int task_num;// task工单量
-	int task_max;// 任务队列最大容量
 
 
 
