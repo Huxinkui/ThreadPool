@@ -69,19 +69,18 @@ int ThreadManger::taskList_create(int num)
 int ThreadManger::taskList_add(TaskNode * taskNode){
 
 
-	// std::unique_lock<std::mutex> lckadd(mtxadd, std::defer_lock);
-	// lckadd.lock();
-	// while( task_max == task_num) 
-	// {
-	// 	cout << "THE TaskList is FULL" << endl;
-	// 	cv.wait(lckadd);
-	// }
-	// lckadd.unlock();
+	std::unique_lock<std::mutex> lckadd(mtxadd, std::defer_lock);
+	lckadd.lock();
+	while( task_max == task_num) 
+	{
+		cout << "THE TaskList is FULL" << endl;
+		cvadd.wait(lckadd);
+	}
+	lckadd.unlock();
 		
 	std::unique_lock<std::mutex> lck(mtx,std::defer_lock);
 	lck.lock();
 		
-	std::unique_lock<std::mutex> lckadd(mtxadd, std::defer_lock);
 
 	while( task_max == task_num) 
 	{
@@ -111,7 +110,7 @@ int ThreadManger::taskList_add(TaskNode * taskNode){
 
 //链表尾部取节点
 TaskNode* ThreadManger::taskList_remove(){
-
+	std::unique_lock<std::mutex> lckadd(mtxadd);
 	std::unique_lock<std::mutex> lck(mtx,std::defer_lock);
 	lck.lock();
 	 
@@ -128,7 +127,7 @@ TaskNode* ThreadManger::taskList_remove(){
 			taskNodeBack = tmpNode->getperv();
 		}
 		task_num --;
-		cv.notify_all();
+		cvadd.notify_all();
 		lck.unlock();
 		return tmpNode;
 	}

@@ -54,6 +54,8 @@ private:
 	std::mutex mtxadd;//最大任务互斥量
 	std::mutex mtx;//取任务互斥量
 	std::condition_variable cv;//信号量
+	std::condition_variable cvadd;//信号量
+
 
 
 
