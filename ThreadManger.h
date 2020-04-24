@@ -28,7 +28,7 @@ public:
 
 
 	//执行队列与销毁
-	int tHredList_Create(int i);
+	int tHredList_Create();
 	int threadList_add(ThreadNode * );
 	int tHreadList_Distory();
 
@@ -38,6 +38,8 @@ public:
 	int getTaskNum();
 	int setTaskMax();
 	int getTaskMax();
+	int setThreadMax();
+	int getThreadMax();
 
 
 private:
@@ -50,7 +52,6 @@ private:
 	ThreadNode * threadNode;//线程池
 	std::mutex mtxadd;//最大任务互斥量
 	std::mutex mtx;//取任务互斥量
-	std::condition_variable cvadd; //最大任务信号量
 	std::condition_variable cv;//信号量
 	int task_num;// task工单量
 	int task_max;// 任务队列最大容量

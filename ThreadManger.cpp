@@ -2,17 +2,17 @@
 #include "TaskNode.h"
 #include "ThreadNode.h"
 
-void  Run(void * arg, void * arg1)
+void  Run(void * arg, void * arg1)//任务节点函数1
 {
 	int num = *(int *)arg;
 	ThreadManger * tmpMangerNode = (ThreadManger *) arg1;
 	std::thread::id thread_id = std::this_thread::get_id();	
 	std::unique_lock<std::mutex> lck(tmpMangerNode->getMtx());
 	cout << "This Thread Id :" << thread_id ;		
-	cout << "  This is RUN    num: " << num << endl;
+	cout << "  This is RUN    num: " << num+1 << endl;
 }
 
-void Thread_cb(void * arg)
+void Thread_cb(void * arg) //线程绑定入口函数
 {
 
 	ThreadManger * tmpMangerNode = (ThreadManger *) arg;
@@ -30,7 +30,7 @@ void Thread_cb(void * arg)
 			
 			if (tmpTaskNode != NULL)
 			{
-				
+				std::this_thread::sleep_for(std::chrono::seconds(1));
 				(tmpTaskNode->getfunc())((void*)&(tmpTaskNode->taskId), arg);
 				
 				delete tmpTaskNode;
@@ -58,6 +58,7 @@ int ThreadManger::taskList_create(int num)
 		tmpNode->setfunc(Run);
 		tmpNode->taskId = i;
 		int ret = taskList_add(tmpNode);
+		//std::this_thread::sleep_for(std::chrono::seconds(1));
 	}
 	// 
 	return 0;
@@ -65,16 +66,13 @@ int ThreadManger::taskList_create(int num)
 //双向链表头部加节点
 int ThreadManger::taskList_add(TaskNode * taskNode){
 
-	//std::this_thread::sleep_for(std::chrono::seconds(1));
-	//
-	//
-	//
+
 	std::unique_lock<std::mutex> lckadd(mtxadd, std::defer_lock);
 	lckadd.lock();
 	while( task_max == task_num) 
 	{
 		cout << "THE TaskList is FULL" << endl;
-		cvadd.wait(lckadd);
+		cv.wait(lckadd);
 	}
 	lckadd.unlock();
 		
@@ -120,7 +118,7 @@ TaskNode* ThreadManger::taskList_remove(){
 			taskNodeBack = tmpNode->getperv();
 		}
 		task_num --;
-		cvadd.notify_all();
+		cv.notify_all();
 		lck.unlock();
 		return tmpNode;
 		
@@ -134,9 +132,7 @@ TaskNode* ThreadManger::taskList_remove(){
 
 
 	//线程队列创建
-int ThreadManger::tHredList_Create(int num){ 
-	
-	max_thread_num = num;	
+int ThreadManger::tHredList_Create(){ 	
 	while(counter < max_thread_num)
 	{
 
@@ -195,6 +191,17 @@ int ThreadManger::setTaskMax(){
 int ThreadManger::getTaskMax(){
 	return task_max;
 }
+
+int ThreadManger::setThreadMax(){
+	cout << "请输入最大线程 ： " ;
+	cin >> max_thread_num;
+	return 0;
+}
+
+int ThreadManger::getThreadMax(){
+	return max_thread_num;
+}
+
 
 
 
