@@ -51,10 +51,8 @@ private:
 	TaskNode * taskNodeHead;//头结点
 	TaskNode * taskNodeBack;//尾结点
 	ThreadNode * threadNode;//线程池
-	std::mutex mtxadd;//最大任务互斥量
 	std::mutex mtx;//取任务互斥量
 	std::condition_variable cv;//信号量
-	std::condition_variable cvadd;//信号量
 
 
 
